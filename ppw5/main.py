@@ -2,6 +2,7 @@ import curses
 import numpy as np
 import input
 import output
+import compression
 # Ensure you have the domains package with student.py and course.py
 from domains.student import Student
 from domains.course import Course
@@ -80,6 +81,9 @@ class MarkManager:
         # Initial curses setup
         curses.curs_set(0) # Hide cursor
         
+        # Check if students.dat exists and load data
+        compression.check_and_load_data(stdscr)
+        
         while True:
             choice = output.display_menu(stdscr)
             
@@ -103,6 +107,16 @@ class MarkManager:
                 self.calculate_all_gpas()
                 output.show_student_list(stdscr, self.__students)
             elif choice == ord('5'):
+                # Before exit, ask to compress data
+                stdscr.clear()
+                stdscr.addstr(0, 0, "Do you want to compress data before exit? (y/n): ")
+                stdscr.refresh()
+                compress_choice = stdscr.getch()
+                
+                if compress_choice == ord('y') or compress_choice == ord('Y'):
+                    method = compression.select_compression_method(stdscr)
+                    compression.compress_data(stdscr, method)
+                
                 break
 
 if __name__ == "__main__":
