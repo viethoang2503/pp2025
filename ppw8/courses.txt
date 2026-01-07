@@ -1,0 +1,3 @@
+123|dsa|3
+456|oop|3
+ads|python|3

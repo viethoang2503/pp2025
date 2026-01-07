@@ -6,8 +6,24 @@ import curses
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(SCRIPT_DIR, "students.dat")
 
-def compress_data(stdscr):
-    """Compress all text files into students.dat using pickle with gzip compression"""
+def select_compression_method(stdscr):
+    """Let user select compression method"""
+    stdscr.clear()
+    stdscr.addstr(0, 0, "=== SELECT COMPRESSION METHOD ===", curses.A_BOLD)
+    stdscr.addstr(2, 0, "1. Pickle (Python binary format)")
+    stdscr.addstr(3, 0, "2. Gzip (Compressed format)")
+    stdscr.addstr(5, 0, "Select method (1 or 2): ")
+    stdscr.refresh()
+    
+    while True:
+        choice = stdscr.getch()
+        if choice == ord('1'):
+            return 'pickle'
+        elif choice == ord('2'):
+            return 'gzip'
+
+def compress_data(stdscr, method='pickle'):
+    """Compress all text files into students.dat"""
     try:
         students_file = os.path.join(SCRIPT_DIR, "students.txt")
         courses_file = os.path.join(SCRIPT_DIR, "courses.txt")
@@ -32,15 +48,18 @@ def compress_data(stdscr):
             with open(marks_file, 'r', encoding='utf-8') as f:
                 data['marks'] = f.readlines()
         
-        # Use pickle with gzip compression
-        with gzip.open(DATA_FILE, 'wb') as f:
-            pickle.dump(data, f)
+        # Compress based on method
+        if method == 'pickle':
+            with open(DATA_FILE, 'wb') as f:
+                pickle.dump(data, f)
+        elif method == 'gzip':
+            with gzip.open(DATA_FILE, 'wb') as f:
+                pickle.dump(data, f)
         
         stdscr.clear()
-        stdscr.addstr(0, 0, "Successfully compressed data using PICKLE + GZIP!", curses.A_BOLD)
+        stdscr.addstr(0, 0, f"Successfully compressed data using {method.upper()}!", curses.A_BOLD)
         stdscr.addstr(1, 0, f"Saved to: students.dat")
-        stdscr.addstr(2, 0, f"Students: {len(data['students'])}, Courses: {len(data['courses'])}, Marks: {len(data['marks'])}")
-        stdscr.addstr(4, 0, "Press any key to continue...")
+        stdscr.addstr(3, 0, "Press any key to continue...")
         stdscr.refresh()
         stdscr.getch()
         return True
@@ -54,14 +73,22 @@ def compress_data(stdscr):
         return False
 
 def decompress_data(stdscr):
-    """Decompress students.dat and load data using pickle with gzip"""
+    """Decompress students.dat and load data"""
     try:
         if not os.path.exists(DATA_FILE):
             return None
         
-        # Decompress using gzip and pickle
-        with gzip.open(DATA_FILE, 'rb') as f:
-            data = pickle.load(f)
+        # Try to decompress with different methods
+        data = None
+        
+        # Try gzip first
+        try:
+            with gzip.open(DATA_FILE, 'rb') as f:
+                data = pickle.load(f)
+        except:
+            # If gzip fails, try regular pickle
+            with open(DATA_FILE, 'rb') as f:
+                data = pickle.load(f)
         
         if data:
             students_file = os.path.join(SCRIPT_DIR, "students.txt")
@@ -102,7 +129,7 @@ def check_and_load_data(stdscr):
     if os.path.exists(DATA_FILE):
         stdscr.clear()
         stdscr.addstr(0, 0, "Found students.dat file!", curses.A_BOLD)
-        stdscr.addstr(1, 0, "Decompressing and loading data using PICKLE + GZIP...")
+        stdscr.addstr(1, 0, "Decompressing and loading data...")
         stdscr.refresh()
         return decompress_data(stdscr)
     return None

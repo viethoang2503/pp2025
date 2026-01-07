@@ -114,9 +114,11 @@ class MarkManager:
                 compress_choice = stdscr.getch()
                 
                 if compress_choice == ord('y') or compress_choice == ord('Y'):
-                    compression.compress_data(stdscr)
+                    # Use async compression with background thread
+                    compression.compress_data_async(stdscr)
                 
                 break
+
 
 if __name__ == "__main__":
     manager = MarkManager()

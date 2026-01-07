@@ -114,7 +114,8 @@ class MarkManager:
                 compress_choice = stdscr.getch()
                 
                 if compress_choice == ord('y') or compress_choice == ord('Y'):
-                    compression.compress_data(stdscr)
+                    method = compression.select_compression_method(stdscr)
+                    compression.compress_data(stdscr, method)
                 
                 break
 
